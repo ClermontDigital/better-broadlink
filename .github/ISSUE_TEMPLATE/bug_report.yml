@@ -1,0 +1,47 @@
+name: Something isn't working
+description: A recording that isn't heard, a code that doesn't work, an error, or set-up trouble.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: remote
+    attributes:
+      label: Broadlink model
+      description: As Better Broadlink's device page shows it, for example RM4 pro.
+      placeholder: RM4 pro
+    validations:
+      required: true
+  - type: input
+    id: appliance
+    attributes:
+      label: What the remote controls
+      description: The appliance and its remote, if it's about a code (for example an Akai split system aircon).
+  - type: input
+    id: ha
+    attributes:
+      label: Home Assistant version
+      placeholder: "2026.11.1"
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Better Broadlink version
+      placeholder: "0.1.1"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or diagnostics
+      description: >-
+        Anything from Settings → System → Logs mentioning better_broadlink or broadlink_async, or the diagnostics
+        download from the integration's page (it leaves the codes out). For more detail, turn on debug logging for
+        Better Broadlink first.
+      render: text
