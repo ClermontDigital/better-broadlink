@@ -41,7 +41,7 @@ And these actions:
 ## Install
 
 **Home Assistant Marketplace (or HACS):** open the Marketplace, choose **⋮ → Custom repositories**, add
-`https://github.com/developersteve/better-broadlink` as an **Integration**, then install **Better Broadlink** and
+`https://github.com/ClermontDigital/better-broadlink` as an **Integration**, then install **Better Broadlink** and
 restart Home Assistant.
 
 **By hand:** copy `custom_components/better_broadlink` into your configuration's `custom_components` folder and restart.
@@ -105,7 +105,9 @@ actions:
 
 ## Help and ideas
 
-[Open an issue](https://github.com/developersteve/better-broadlink/issues).
+[Open an issue](https://github.com/ClermontDigital/better-broadlink/issues).
+
+Made by [Clermont Digital](https://clermont.digital).
 
 ## Licence
 

@@ -2,18 +2,18 @@
   "domain": "better_broadlink",
   "name": "Better Broadlink",
   "codeowners": [
-    "@developersteve"
+    "@ClermontDigital"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/developersteve/better-broadlink",
+  "documentation": "https://github.com/ClermontDigital/better-broadlink",
   "integration_type": "device",
   "iot_class": "assumed_state",
-  "issue_tracker": "https://github.com/developersteve/better-broadlink/issues",
+  "issue_tracker": "https://github.com/ClermontDigital/better-broadlink/issues",
   "loggers": [
     "broadlink_async"
   ],
   "requirements": [
     "broadlink-async==1.2.1"
   ],
-  "version": "0.1.1"
+  "version": "0.1.2"
 }

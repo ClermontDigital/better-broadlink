@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (18 Nov 2026)
+
+- Moved to github.com/ClermontDigital/better-broadlink (the old address redirects). If you added the old address
+  as a custom repository, add the new one.
+
 ## 0.1.1 (18 Nov 2026)
 
 - The Recording sensor goes back to Idle a minute after a recording is recorded, heard nothing or is cancelled,
