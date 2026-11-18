@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.3 (18 Nov 2026)
+
+- `cancel_recording` now stops only the wait for a press: the record action fails with "cancelled" instead of
+  stopping whatever called it, so a script recording several buttons (with `continue_on_error`) skips to the next.
+  It also works between the two presses of an on/off pair.
+
 ## 0.1.2 (18 Nov 2026)
 
 - Moved to github.com/ClermontDigital/better-broadlink (the old address redirects). If you added the old address

@@ -100,6 +100,10 @@ class Recording:
         return ""
 
 
+class _Cancelled(Exception):
+    """cancel_recording stopped the wait for a press."""
+
+
 def decode_code(code: str) -> bytes:
     """Turn a stored or pasted base64 code into the packet the device sends."""
     code = code.strip()
@@ -129,6 +133,8 @@ class BetterBroadlinkHub:
         self._store: Store[dict[str, Any]] = Store(hass, STORAGE_VERSION, f"{DOMAIN}.{entry.entry_id}")
         self._send_lock = asyncio.Lock()
         self._record_task: asyncio.Task | None = None
+        self._capture_task: asyncio.Task | None = None
+        self._cancel_requested = False
         self._listeners: list[Callable[[], None]] = []
         self._back_to_idle: Callable[[], None] | None = None
 
@@ -166,6 +172,8 @@ class BetterBroadlinkHub:
             self._back_to_idle = None
         if self._record_task is not None:
             self._record_task.cancel()
+        if self._capture_task is not None:
+            self._capture_task.cancel()
         if self.api is not None:
             await self.api.aclose()
             self.api = None
@@ -227,6 +235,26 @@ class BetterBroadlinkHub:
                 return signal.packet
         return None
 
+    async def _async_wait_for_press(self, window: float) -> bytes | None:
+        """Wait for one press in a task of its own, so cancel_recording can stop the wait but not the caller.
+
+        A script recording several buttons in a row carries on with the next one (the record action fails with
+        "cancelled", which continue_on_error lets through); stopping the script itself still stops everything.
+        """
+        if self._cancel_requested:
+            raise _Cancelled
+        self._capture_task = self.hass.async_create_background_task(
+            self._async_capture_one(window), f"{DOMAIN} capture {self.entry.entry_id}"
+        )
+        try:
+            return await self._capture_task
+        except asyncio.CancelledError:
+            if (current := asyncio.current_task()) is not None and current.cancelling():
+                raise
+            raise _Cancelled from None
+        finally:
+            self._capture_task = None
+
     async def async_record(self, name: str, toggle: bool, window: float, icon: str | None) -> Command:
         """Record a button from the remote: one press, or two for an on/off pair."""
         slug = self._slug(name)
@@ -236,6 +264,7 @@ class BetterBroadlinkHub:
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="already_recording")
         presses = 2 if toggle else 1
         self._record_task = asyncio.current_task()
+        self._cancel_requested = False
         codes: list[str] = []
         try:
             for press in range(1, presses + 1):
@@ -244,7 +273,7 @@ class BetterBroadlinkHub:
                 self._set_recording(RecordingStatus.WAITING, name, press, presses,
                                     dt_util.utcnow() + timedelta(seconds=window))
                 try:
-                    packet = await self._async_capture_one(window)
+                    packet = await self._async_wait_for_press(window)
                 except CaptureInProgressError as err:
                     raise ServiceValidationError(translation_domain=DOMAIN, translation_key="already_recording") from err
                 except (BroadlinkException, OSError) as err:
@@ -260,21 +289,29 @@ class BetterBroadlinkHub:
                         translation_placeholders={"name": name, "seconds": str(int(window))},
                     )
                 codes.append(base64.b64encode(packet).decode())
+        except _Cancelled:
+            self._set_recording(RecordingStatus.CANCELLED, name, len(codes) + 1, presses)
+            raise HomeAssistantError(
+                translation_domain=DOMAIN, translation_key="cancelled", translation_placeholders={"name": name}
+            ) from None
         except asyncio.CancelledError:
             self._set_recording(RecordingStatus.CANCELLED, name, len(codes) + 1, presses)
             raise
         finally:
             self._record_task = None
+            self._cancel_requested = False
         command = await self._async_store(slug, name, codes, icon)
         self._set_recording(RecordingStatus.RECORDED, name, presses, presses)
         return command
 
     @callback
     def async_cancel_recording(self) -> bool:
-        """Stop the recording in progress; False if there wasn't one."""
+        """Stop waiting for a press: the record action fails with "cancelled". False if nothing was recording."""
         if self._record_task is None:
             return False
-        self._record_task.cancel()
+        self._cancel_requested = True   # in case it's between the two presses of a pair
+        if self._capture_task is not None:
+            self._capture_task.cancel()
         return True
 
     # Commands

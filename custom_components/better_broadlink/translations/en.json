@@ -83,7 +83,7 @@
     },
     "cancel_recording": {
       "name": "Cancel recording",
-      "description": "Stops waiting for a press.",
+      "description": "Stops waiting for a press. The record action then fails with Cancelled, so a script recording several buttons (with continue on error) goes on to the next one.",
       "fields": {
         "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."}
       }
@@ -95,6 +95,7 @@
     "send_failed": {"message": "Couldn't send the code: {error}"},
     "record_failed": {"message": "Recording stopped: {error}"},
     "nothing_heard": {"message": "Nothing was heard for {name} within {seconds} seconds. Point the remote at the Broadlink, close up, and try again."},
+    "cancelled": {"message": "Recording {name} was cancelled."},
     "already_recording": {"message": "The remote is already recording. Wait for it to finish, or cancel it."},
     "bad_code": {"message": "That isn't a Broadlink code: {error}"},
     "bad_name": {"message": "Give the command a name with at least one letter or number."},

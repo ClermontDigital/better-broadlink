@@ -10,6 +10,7 @@ from custom_components.better_broadlink.const import DOMAIN
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.setup import async_setup_component
 from homeassistant.util import dt as dt_util
 
 from .conftest import TURBO_OFF, TURBO_ON, WAIT, b64, make_entry
@@ -72,7 +73,7 @@ async def test_the_sensor_says_what_to_press(hass, entry, remote):
     assert state.attributes["command"] == "Aircon turbo" and state.attributes["ends_at"]
 
     await hass.services.async_call(DOMAIN, "cancel_recording", {}, blocking=True)
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(HomeAssistantError, match="Recording Aircon turbo was cancelled"):
         await task
     assert hass.states.get(SENSOR).state == "cancelled"
     assert hass.states.get("switch.rainbowremote_aircon_turbo") is None
@@ -106,8 +107,39 @@ async def test_one_recording_at_a_time(hass, entry, remote):
     with pytest.raises(ServiceValidationError, match="already recording"):
         await record(hass, "Aircon eco")
     entry.runtime_data.async_cancel_recording()
-    with pytest.raises(asyncio.CancelledError):
+    with pytest.raises(HomeAssistantError, match="cancelled"):
         await task
+
+
+async def test_cancelling_skips_to_the_next_button_in_a_script(hass, entry, remote):
+    """A script recording several buttons with continue_on_error goes on after one is cancelled."""
+    remote.heard = [WAIT, TURBO_ON]
+    await async_setup_component(hass, "script", {"script": {"record_two": {"sequence": [
+        {"action": f"{DOMAIN}.record", "data": {"name": "Aircon swing"}, "continue_on_error": True},
+        {"action": f"{DOMAIN}.record", "data": {"name": "Aircon eco"}},
+    ]}}})
+    task = hass.async_create_task(hass.services.async_call("script", "record_two", blocking=True))
+    await asyncio.sleep(0.05)
+    assert hass.states.get(SENSOR).attributes["command"] == "Aircon swing"
+    await hass.services.async_call(DOMAIN, "cancel_recording", {}, blocking=True)
+    await task
+    await hass.async_block_till_done()
+    assert set(entry.runtime_data.commands) == {"aircon_eco"}
+    assert hass.states.get("button.rainbowremote_aircon_eco") is not None
+
+
+async def test_cancelling_between_the_two_presses(hass, entry, remote):
+    remote.heard = [TURBO_ON, WAIT]
+    hub = entry.runtime_data
+    task = hass.async_create_task(record(hass, "Aircon turbo", toggle=True))
+    for _ in range(100):
+        await asyncio.sleep(0.01)
+        if hub.recording.press == 2:
+            break
+    hub.async_cancel_recording()
+    with pytest.raises(HomeAssistantError, match="cancelled"):
+        await task
+    assert hub.commands == {}
 
 
 async def test_recording_again_as_a_pair_swaps_the_button_for_a_switch(hass, entry, remote):
