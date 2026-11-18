@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 (18 Nov 2026)
+
+- The Recording sensor goes back to Idle a minute after a recording is recorded, heard nothing or is cancelled,
+  so a dashboard banner keyed on it doesn't stay up.
+
 ## 0.1.0 (18 Nov 2026)
 
 First release.

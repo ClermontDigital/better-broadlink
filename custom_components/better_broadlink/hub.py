@@ -25,6 +25,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.device_registry import format_mac
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.storage import Store
 from homeassistant.util import dt as dt_util
 from homeassistant.util import slugify
@@ -35,6 +36,7 @@ from .const import (
     CONF_MODEL,
     DOMAIN,
     PAUSE_BETWEEN_PRESSES,
+    RECORDING_SHOWN_FOR,
     REARM_INTERVAL,
     SIGNAL_COMMANDS,
     STORAGE_VERSION,
@@ -128,6 +130,7 @@ class BetterBroadlinkHub:
         self._send_lock = asyncio.Lock()
         self._record_task: asyncio.Task | None = None
         self._listeners: list[Callable[[], None]] = []
+        self._back_to_idle: Callable[[], None] | None = None
 
     @property
     def mac(self) -> str:
@@ -158,6 +161,9 @@ class BetterBroadlinkHub:
 
     async def async_close(self) -> None:
         """Stop a recording and close the session."""
+        if self._back_to_idle is not None:
+            self._back_to_idle()
+            self._back_to_idle = None
         if self._record_task is not None:
             self._record_task.cancel()
         if self.api is not None:
@@ -198,8 +204,19 @@ class BetterBroadlinkHub:
     def _set_recording(self, status: RecordingStatus, command: str | None, press: int = 0, presses: int = 0,
                        ends_at: datetime | None = None) -> None:
         self.recording = Recording(status, command, press, presses, ends_at)
+        if self._back_to_idle is not None:
+            self._back_to_idle()
+            self._back_to_idle = None
+        if status in (RecordingStatus.RECORDED, RecordingStatus.NOTHING_HEARD, RecordingStatus.CANCELLED):
+            # Say how it went for a while, then go back to Idle so a dashboard banner doesn't linger.
+            self._back_to_idle = async_call_later(self.hass, RECORDING_SHOWN_FOR, self._async_idle)
         for listener in list(self._listeners):
             listener()
+
+    @callback
+    def _async_idle(self, _now: datetime) -> None:
+        self._back_to_idle = None
+        self._set_recording(RecordingStatus.IDLE, None)
 
     async def _async_capture_one(self, window: float) -> bytes | None:
         """Wait up to ``window`` seconds for one press; the packet, or None if nothing was heard."""

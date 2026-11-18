@@ -1,14 +1,16 @@
 """Recording buttons, sending them, and what the Recording sensor says."""
 import asyncio
+from datetime import timedelta
 
 from broadlink_async.exceptions import AuthorizationError
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_homeassistant_custom_component.common import MockConfigEntry, async_fire_time_changed
 
 from custom_components.better_broadlink.const import DOMAIN
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers import entity_registry as er
+from homeassistant.util import dt as dt_util
 
 from .conftest import TURBO_OFF, TURBO_ON, WAIT, b64, make_entry
 
@@ -82,6 +84,11 @@ async def test_nothing_heard(hass, entry, remote):
         await record(hass, "Aircon eco", window=20)
     assert hass.states.get(SENSOR).state == "nothing_heard"
     assert entry.runtime_data.commands == {}
+
+    async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=61))
+    await hass.async_block_till_done()
+    assert hass.states.get(SENSOR).state == "idle"
+    assert hass.states.get(SENSOR).attributes["prompt"] is None
 
 
 async def test_a_missed_second_press_keeps_nothing(hass, entry, remote):

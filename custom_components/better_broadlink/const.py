@@ -23,6 +23,8 @@ MAX_WINDOW = 120
 REARM_INTERVAL = 10.0
 # Between the two presses of an on/off pair, so the second window doesn't open on the tail of the first press.
 PAUSE_BETWEEN_PRESSES = 1.5
+# How long the Recording sensor says how a recording went before it goes back to Idle, in seconds.
+RECORDING_SHOWN_FOR = 60
 
 STORAGE_VERSION = 1
 
