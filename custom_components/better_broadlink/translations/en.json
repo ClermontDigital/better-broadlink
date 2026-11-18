@@ -1,0 +1,106 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Add a Broadlink remote",
+        "description": "The address of a Broadlink universal remote (an RM4 Pro, RM4 mini, RM mini 3 and the like). If Home Assistant's own Broadlink integration already has one, its address is filled in. Better Broadlink works alongside it.",
+        "data": {
+          "host": "Address",
+          "name": "Name"
+        },
+        "data_description": {
+          "host": "Its IP address or host name, for example 192.168.1.27.",
+          "name": "Leave empty to use the name the remote reports."
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "No Broadlink device answered at that address.",
+      "not_a_remote": "That Broadlink device can't record infrared (it isn't a universal remote)."
+    },
+    "abort": {
+      "already_configured": "That remote is already set up."
+    }
+  },
+  "entity": {
+    "sensor": {
+      "recording": {
+        "name": "Recording",
+        "state": {
+          "idle": "Idle",
+          "waiting": "Waiting for a press",
+          "recorded": "Recorded",
+          "nothing_heard": "Nothing heard",
+          "cancelled": "Cancelled"
+        },
+        "state_attributes": {
+          "command": {"name": "Command"},
+          "press": {"name": "Press"},
+          "presses": {"name": "Presses"},
+          "prompt": {"name": "Prompt"},
+          "ends_at": {"name": "Ends at"}
+        }
+      }
+    }
+  },
+  "services": {
+    "record": {
+      "name": "Record a button",
+      "description": "Waits for a press of a button on a remote pointed at the Broadlink and keeps its code as a button entity. With On and off, it waits for two presses (on, then off) and makes a switch. The Recording sensor says what to press.",
+      "fields": {
+        "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."},
+        "name": {"name": "Name", "description": "What the button is called, for example Aircon turbo. Recording a name again replaces its code."},
+        "toggle": {"name": "On and off", "description": "Record two presses: the first is sent to turn it on, the second to turn it off."},
+        "window": {"name": "Wait", "description": "How long to wait for each press, in seconds."},
+        "icon": {"name": "Icon", "description": "An icon for the entity."}
+      }
+    },
+    "add": {
+      "name": "Add a code",
+      "description": "Keeps a code recorded somewhere else (Broadlink base64, with or without b64:) as a button, or two codes (on, off) as a switch.",
+      "fields": {
+        "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."},
+        "name": {"name": "Name", "description": "What the button is called."},
+        "codes": {"name": "Codes", "description": "One code for a button, two (on, then off) for a switch."},
+        "icon": {"name": "Icon", "description": "An icon for the entity."}
+      }
+    },
+    "send": {
+      "name": "Send a code",
+      "description": "Sends a recorded command's code (for an on/off pair, the first one). The button and switch entities do the same.",
+      "fields": {
+        "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."},
+        "name": {"name": "Name", "description": "The command's name."}
+      }
+    },
+    "forget": {
+      "name": "Forget a code",
+      "description": "Deletes a recorded command and its entity.",
+      "fields": {
+        "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."},
+        "name": {"name": "Name", "description": "The command's name."}
+      }
+    },
+    "cancel_recording": {
+      "name": "Cancel recording",
+      "description": "Stops waiting for a press.",
+      "fields": {
+        "config_entry_id": {"name": "Remote", "description": "Which Broadlink remote. Only needed when there's more than one."}
+      }
+    }
+  },
+  "exceptions": {
+    "cannot_connect": {"message": "Couldn't reach the Broadlink remote: {error}"},
+    "not_connected": {"message": "The Broadlink remote isn't connected."},
+    "send_failed": {"message": "Couldn't send the code: {error}"},
+    "record_failed": {"message": "Recording stopped: {error}"},
+    "nothing_heard": {"message": "Nothing was heard for {name} within {seconds} seconds. Point the remote at the Broadlink, close up, and try again."},
+    "already_recording": {"message": "The remote is already recording. Wait for it to finish, or cancel it."},
+    "bad_code": {"message": "That isn't a Broadlink code: {error}"},
+    "bad_name": {"message": "Give the command a name with at least one letter or number."},
+    "one_or_two_codes": {"message": "Give one code (a button) or two (on, then off: a switch)."},
+    "unknown_command": {"message": "Nothing is recorded under {name}."},
+    "no_entry": {"message": "No Broadlink remote is set up in Better Broadlink (or the one given isn't loaded)."},
+    "which_entry": {"message": "More than one remote is set up: say which one."}
+  }
+}

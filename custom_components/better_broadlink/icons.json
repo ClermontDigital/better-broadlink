@@ -1,0 +1,22 @@
+{
+  "entity": {
+    "sensor": {
+      "recording": {
+        "default": "mdi:record-circle-outline",
+        "state": {
+          "waiting": "mdi:remote",
+          "recorded": "mdi:check-circle-outline",
+          "nothing_heard": "mdi:alert-circle-outline",
+          "cancelled": "mdi:close-circle-outline"
+        }
+      }
+    }
+  },
+  "services": {
+    "record": {"service": "mdi:record-rec"},
+    "add": {"service": "mdi:plus-circle-outline"},
+    "send": {"service": "mdi:remote"},
+    "forget": {"service": "mdi:delete-outline"},
+    "cancel_recording": {"service": "mdi:stop-circle-outline"}
+  }
+}

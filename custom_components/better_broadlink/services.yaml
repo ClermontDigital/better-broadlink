@@ -1,0 +1,72 @@
+record:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: better_broadlink
+    name:
+      required: true
+      example: Aircon turbo
+      selector:
+        text:
+    toggle:
+      default: false
+      selector:
+        boolean:
+    window:
+      default: 45
+      selector:
+        number:
+          min: 10
+          max: 120
+          unit_of_measurement: s
+    icon:
+      selector:
+        icon:
+add:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: better_broadlink
+    name:
+      required: true
+      example: Aircon turbo
+      selector:
+        text:
+    codes:
+      required: true
+      selector:
+        text:
+          multiple: true
+    icon:
+      selector:
+        icon:
+send:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: better_broadlink
+    name:
+      required: true
+      example: Aircon turbo
+      selector:
+        text:
+forget:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: better_broadlink
+    name:
+      required: true
+      example: Aircon turbo
+      selector:
+        text:
+cancel_recording:
+  fields:
+    config_entry_id:
+      selector:
+        config_entry:
+          integration: better_broadlink
