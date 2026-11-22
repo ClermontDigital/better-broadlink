@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.4 (22 Nov 2026)
+
+- Asks for broadlink-async 1.2.1 or newer instead of exactly 1.2.1, so it follows Home Assistant's own Broadlink
+  integration when that moves to a newer version of the library. Home Assistant's validator rejects an exact pin on a
+  package it already depends on, and a later Home Assistant release would have clashed with it. Nothing else changes.
+
 ## 0.1.3 (18 Nov 2026)
 
 - `cancel_recording` now stops only the wait for a press: the record action fails with "cancelled" instead of
